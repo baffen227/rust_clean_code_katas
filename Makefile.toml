@@ -1,0 +1,237 @@
+#:schema https://www.schemastore.org/cargo-make.json
+# Documentation: https://github.com/sagiegurari/cargo-make
+
+[env]
+CARGO_MAKE_EXTEND_WORKSPACE_MAKEFILE = true
+
+[env.ci-cd]
+RUSTFLAGS = "-D warnings"
+
+[config]
+load_cargo_aliases = true
+skip_core_tasks = true
+
+#########################################################################
+# Build
+#########################################################################
+
+[tasks.check]
+category = "build"
+description = "Check if the current code compiles without errors"
+command = "cargo"
+args = ["check"]
+dependencies = ["pre-check"]
+
+[tasks.build]
+run_task = [
+	{ name = "build-debug", condition = { profiles = [
+		"development",
+	] } },
+	{ name = "build-release", condition = { profiles = [
+		"release",
+	] } },
+]
+
+[tasks.build-debug]
+category = "build"
+description = "Build the crate with rustc"
+command = "cargo"
+args = ["build"]
+dependencies = ["pre-build"]
+
+[tasks.build-release]
+category = "build"
+description = "Build the crate with rustc in release mode"
+command = "cargo"
+args = ["build", "--release"]
+dependencies = ["pre-build"]
+
+[tasks.rebuild]
+category = "build"
+description = "Do a full-cleaning before the attempt to build"
+dependencies = ["pre-rebuild", "build"]
+
+#########################################################################
+# Test
+#########################################################################
+
+[tasks.test]
+category = "test"
+description = "Run all tests"
+command = "cargo"
+args = ["test"]
+dependencies = ["pre-test"]
+
+[tasks.test-kata]
+category = "test"
+description = "Run tests for a specific kata (usage: cargo make test-kata -- kata1)"
+command = "cargo"
+args = ["test", "${@}"]
+
+#########################################################################
+# Lint
+#########################################################################
+
+[tasks.clippy]
+category = "lint"
+description = "Run clippy analysis on the Rust codebase"
+command = "cargo"
+args = ["clippy", "--", "-D", "warnings"]
+dependencies = ["pre-clippy"]
+
+[tasks.format]
+category = "lint"
+description = "Check format of the Rust code with rustfmt"
+command = "cargo"
+args = ["fmt", "--check"]
+dependencies = ["pre-format"]
+
+#########################################################################
+# Fix
+#########################################################################
+
+[tasks.format-fix]
+category = "fix"
+description = "Auto-fix format issues with rustfmt"
+command = "cargo"
+args = ["fmt"]
+dependencies = ["pre-format"]
+
+[tasks.clippy-fix]
+category = "fix"
+description = "Attempt to auto-fix Clippy issues"
+command = "cargo"
+args = ["clippy", "--fix", "--allow-dirty"]
+
+#########################################################################
+# Quality Assurance
+#########################################################################
+
+[tasks.qa]
+category = "quality"
+description = "Run all quality checks (format, clippy, test)"
+dependencies = ["format", "clippy", "test"]
+
+[tasks.qa-fix]
+category = "quality"
+description = "Run all quality fixes and then check"
+dependencies = ["format-fix", "clippy-fix", "test"]
+
+#########################################################################
+# Kata Management
+#########################################################################
+
+[tasks.enable-kata]
+category = "kata"
+description = "Enable a specific kata in main.rs (usage: cargo make enable-kata -- kata2)"
+script = '''
+if [ -z "$1" ]; then
+    echo "Usage: cargo make enable-kata -- <kata_name>"
+    echo "Available katas: kata1, kata2, kata3, kata4, kata5, kata6, kata7, kata8"
+    exit 1
+fi
+
+KATA_NAME=$1
+MODULE_LINE="mod ${KATA_NAME}_"
+
+# Find the correct module line and uncomment it
+sed -i "s|^//mod ${KATA_NAME}_|mod ${KATA_NAME}_|g" src/main.rs
+
+echo "Enabled ${KATA_NAME} module in main.rs"
+'''
+
+[tasks.disable-kata]
+category = "kata"
+description = "Disable a specific kata in main.rs (usage: cargo make disable-kata -- kata2)"
+script = '''
+if [ -z "$1" ]; then
+    echo "Usage: cargo make disable-kata -- <kata_name>"
+    echo "Available katas: kata1, kata2, kata3, kata4, kata5, kata6, kata7, kata8"
+    exit 1
+fi
+
+KATA_NAME=$1
+
+# Find the correct module line and comment it
+sed -i "s|^mod ${KATA_NAME}_|//mod ${KATA_NAME}_|g" src/main.rs
+
+echo "Disabled ${KATA_NAME} module in main.rs"
+'''
+
+[tasks.list-katas]
+category = "kata"
+description = "List all available katas and their status"
+script = '''
+echo "Available Katas:"
+echo "================"
+for i in {1..8}; do
+    if grep -q "^mod kata${i}_" src/main.rs; then
+        echo "kata${i}: ENABLED"
+    else
+        echo "kata${i}: DISABLED"
+    fi
+done
+'''
+
+#########################################################################
+# Hooks
+#########################################################################
+
+[tasks.pre-format]
+category = "hooks"
+description = "Run tasks before the format"
+command = "cargo"
+args = ["fmt", "--version"]
+
+[tasks.pre-test]
+category = "hooks"
+description = "Run tasks before the test"
+command = "cargo"
+args = ["test", "--version"]
+
+[tasks.pre-clippy]
+category = "hooks"
+description = "Run tasks before the clippy"
+command = "cargo"
+args = ["clippy", "--version"]
+
+[tasks.pre-build]
+category = "hooks"
+description = "Run tasks before the build"
+command = "rustc"
+args = ["--version"]
+
+[tasks.pre-check]
+category = "hooks"
+description = "Run tasks before the check"
+command = "cargo"
+args = ["--version"]
+
+[tasks.pre-clean]
+category = "hooks"
+description = "Run tasks before the clean"
+command = "cargo"
+args = ["--version"]
+
+[tasks.pre-rebuild]
+category = "hooks"
+description = "Run tasks before the rebuild"
+dependencies = ["clean"]
+
+#########################################################################
+# Utils
+#########################################################################
+
+[tasks.clean]
+category = "utils"
+description = "Clean the build output"
+command = "cargo"
+args = ["clean"]
+dependencies = ["pre-clean"]
+
+[tasks.run]
+category = "utils"
+description = "Run the main binary"
+command = "cargo"
+args = ["run"]
+dependencies = ["build"]

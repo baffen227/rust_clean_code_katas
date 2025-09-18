@@ -1,0 +1,8 @@
+[package]
+name = "rust_clean_code_katas"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+regex = "1"
+chrono = "0.4"
