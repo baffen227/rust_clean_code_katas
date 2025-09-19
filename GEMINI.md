@@ -19,27 +19,7 @@ The code is written in Rust and includes comments in English.
 
 To build and run the code, you will need to have the Rust toolchain and `cargo` installed.
 
-First, create a new cargo project:
-
-```sh
-cargo new rust_clean_code_katas_project
-cd rust_clean_code_katas_project
-```
-
-Then, move the kata files into the `src` directory.
-
-Next, you'll need to declare the modules in `src/lib.rs`:
-
-```rust
-pub mod kata1_temperature_converter;
-pub mod kata2_string_processor;
-pub mod kata3_simple_calculator;
-pub mod kata4_user_validation;
-pub mod kata5_shape_area_calculator;
-pub mod kata6_simple_logging_system;
-pub mod kata7_mini_todo_application;
-pub mod kata8_simple_parser;
-```
+The project is a binary crate with a `main.rs` file that demonstrates the functionality of each kata.
 
 ## Building
 
@@ -48,6 +28,16 @@ To build the project, you can use the following command:
 ```sh
 cargo build
 ```
+
+## Running
+
+To run the project, you can use the following command:
+
+```sh
+cargo run
+```
+
+This will execute the `main` function in `src/main.rs`, which runs each kata and prints the output to the console.
 
 ## Testing
 

@@ -2,6 +2,20 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Development Environment
+
+### Nix Shell Setup
+```bash
+nix-shell                    # Enter development environment
+./verify-shell.sh           # Verify environment before development
+```
+
+**Environment includes:**
+- Rust nightly-2025-01-01 toolchain (rustc, cargo, clippy, rustfmt, rust-analyzer)
+- cargo-make for enhanced build tasks
+- Development utilities: claude-code, gemini-cli, kiro, zed-editor
+- Proper environment variables (RUST_SRC_PATH, LIBCLANG_PATH)
+
 ## Development Commands
 
 ### Building
@@ -52,7 +66,8 @@ cargo make rebuild          # Clean and rebuild
 - `chrono = "0.4"` - Used in kata6 for timestamp formatting in logging
 
 ### Prerequisites
-- **cargo-make**: Install with `cargo install cargo-make` for enhanced build tasks
+- **Nix**: Required for development environment
+- **cargo-make**: Available via shell.nix for enhanced build tasks
 
 ## Project Architecture
 
@@ -85,6 +100,16 @@ This is a collection of 8 Rust clean code katas, each demonstrating specific pri
 **Type Safety Patterns**: Extensive use of newtypes (Username, Email, Password, TaskId) and enums for type-safe APIs.
 
 ## Configuration
+
+**Rust Toolchain** (rust-toolchain.toml):
+- Channel: nightly-2025-01-01
+- Components: cargo, clippy, rust-analyzer, rust-docs, rust-src, rustc, rustfmt
+- Target: x86_64-unknown-linux-gnu
+
+**Nix Environment** (shell.nix):
+- rustPkgs: nixos-25.05 (stable) for Rust development
+- utilityPkgs: nixos-unstable for additional development tools
+- Dual package source approach for stability + latest utilities
 
 **Clippy Settings** (clippy.toml):
 - MSRV: 1.80.0
